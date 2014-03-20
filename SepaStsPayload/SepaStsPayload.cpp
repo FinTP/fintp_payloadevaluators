@@ -28,16 +28,22 @@ using namespace FinTP;
 #include "WSRM/SequenceFault.h"
 
 #include "SepaStsPayload.h"
-//#include "../RoutingEngine.h"
-//#include "../Currency.h"
 
-
-const string SepaStsPayload::m_FieldPaths[ SEPABLKRJCTPAYLOAD_PATHCOUNT ] = { "//x:GrpSts/text()" };
+const string SepaStsPayload::m_StatusXpath = "//x:GrpSts/text()";
 
 SepaStsPayload::SepaStsPayload( const XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument* document ) :
 	m_BatchType( 2 ), m_AckType( 2), m_NackType( 2 ),RoutingMessageEvaluator( document, RoutingMessageEvaluator::SAGSTS )
 {
 	m_SequenceResponse = NULL;
+
+	const DOMElement* root = m_Document->getDocumentElement();
+	for ( XERCES_CPP_NAMESPACE_QUALIFIER DOMNode* key = root->getFirstChild(); key != 0; key = key->getNextSibling() )
+	{
+		if ( key->getNodeType() != DOMNode::ELEMENT_NODE )
+			continue;
+
+		m_MessageType = localForm( key->getLocalName() );
+	}
 }
 
 SepaStsPayload::~SepaStsPayload()
@@ -61,85 +67,6 @@ string SepaStsPayload::internalToString()
 {
 	return XmlUtil::SerializeToString( m_Document );
 }
-/*
-string SepaStsPayload::internalGetField( const int field )
-{
-	switch( field )
-	{
-
-		case InternalXmlPayload::STATUS :
-		case InternalXmlPayload::SENDER :
-		case InternalXmlPayload::RECEIVER :
-			{
-				XALAN_CPP_NAMESPACE_QUALIFIER NodeRefList itemList =  XPathHelper::EvaluateNodes( m_FieldPaths[ field ], m_XalanDocument, m_Namespace );
-				for( unsigned index = 0; index < itemList.getLength(); index++ )
-				{
-					string crtValue = XPathHelper::SerializeToString( itemList.item( index ) );
-					if ( crtValue.length() > 0 )
-						return crtValue;
-				}
-				return "";
-			}
-
-		case InternalXmlPayload::IOIDENTIFIER :
-			return "O";
-
-		case InternalXmlPayload::MESSAGETYPE :
-			{
-				const DOMElement* root = m_Document->getDocumentElement();
-				for ( XERCES_CPP_NAMESPACE_QUALIFIER DOMNode* key = root->getFirstChild(); key != 0; key=key->getNextSibling() )
-				{
-					if ( key->getNodeType() != DOMNode::ELEMENT_NODE )
-						continue;
-
-					string messageType = localForm( key->getLocalName() );
-					return messageType;
-				}
-				return "";
-			}
-
-		case InternalXmlPayload::ORGTXID :
-			{
-
-				string messageType = getField( InternalXmlPayload::MESSAGETYPE );
-				string orgTxIdXPath = "";//RoutingEngine::GetKeywordXPath( messageType, "ORGTXID" );
-				
-				if ( orgTxIdXPath.length() > 0 )
-				{
-					string orgTxId = XPathHelper::SerializeToString( XPathHelper::Evaluate( orgTxIdXPath, m_XalanDocument, m_Namespace ) );
-					//return RoutingEngine::EvaluateKeywordValue( messageType, orgTxId, "ORGTXID", "value" );
-				}
-			return "";
-			}
-
-		case InternalXmlPayload::TRN :
-			{
-				string messageType = getField( InternalXmlPayload::MESSAGETYPE );
-				string trnXPath = "";//RoutingEngine::GetKeywordXPath( messageType, "TRN" );
-				return ( trnXPath.length() > 0 ) ? XPathHelper::SerializeToString( XPathHelper::Evaluate( trnXPath, m_XalanDocument, m_Namespace ) ) : "";
-			}
-
-		case InternalXmlPayload::RELATEDREF :
-			{
-				string messageType = getField( InternalXmlPayload::MESSAGETYPE );
-				string relRefXPath = "";//RoutingEngine::GetKeywordXPath( messageType, "RelatedRef" );
-				return ( relRefXPath.length() > 0 ) ? XPathHelper::SerializeToString( XPathHelper::Evaluate( relRefXPath, m_XalanDocument, m_Namespace ) ) : "";
-			}
-
-		case InternalXmlPayload::RELATEDREF :
-			{
-				return getField( InternalXmlPayload::RELATEDREF );
-			}
-
-		default :
-			break;
-	}
-	
-	stringstream errorMessage;
-	errorMessage << "Unknown field requested [" << field << "]";
-	throw invalid_argument( errorMessage.str() );
-}
-*/
 
 const RoutingAggregationCode& SepaStsPayload::getAggregationCode( const RoutingAggregationCode& feedback )
 {
@@ -172,7 +99,7 @@ const RoutingAggregationCode& SepaStsPayload::getAggregationCode( const RoutingA
 			else //PART/RJCT but not rejected
 			{
 				aggField = RoutingMessageEvaluator::AGGREGATIONTOKEN_SAACODE;
-				code = RoutingMessageEvaluator::FEEDBACKQPI_APPROVED;
+				code = RoutingMessageEvaluator::FEEDBACKFTP_APPROVED;
 			}
 
 		}
@@ -182,7 +109,7 @@ const RoutingAggregationCode& SepaStsPayload::getAggregationCode( const RoutingA
 			if( response == NULL )
 				throw logic_error( "SepaStsPaylod is not sequence acknowledgement" );
 			if( response->IsAck( correlId ) )
-				code = RoutingMessageEvaluator::FEEDBACKQPI_ACK;
+				code = RoutingMessageEvaluator::FEEDBACKFTP_ACK;
 		}
 		else
 			code = getOverrideFeedback();
@@ -199,7 +126,7 @@ const RoutingAggregationCode& SepaStsPayload::getAggregationCode( const RoutingA
 	{
 		if( isAck() )
 		{
-			m_AggregationCode.addAggregationField( RoutingMessageEvaluator::AGGREGATIONTOKEN_TFDCODE, RoutingMessageEvaluator::FEEDBACKQPI_ACK );
+			m_AggregationCode.addAggregationField( RoutingMessageEvaluator::AGGREGATIONTOKEN_TFDCODE, RoutingMessageEvaluator::FEEDBACKFTP_ACK );
 		}
 		else
 		{
@@ -214,13 +141,13 @@ const RoutingAggregationCode& SepaStsPayload::getAggregationCode( const RoutingA
 
 	//PART/RJCT but not rejected
 	/*
-	if ( correlToken == RoutingMessageEvaluator::AGGREGATIONTOKEN_QPIID )
+	if ( correlToken == RoutingMessageEvaluator::AGGREGATIONTOKEN_FTPID )
 	{
-		m_AggregationCode.addAggregationField( RoutingMessageEvaluator::AGGREGATIONTOKEN_SAACODE, RoutingMessageEvaluator::FEEDBACKQPI_APPROVED );
+		m_AggregationCode.addAggregationField( RoutingMessageEvaluator::AGGREGATIONTOKEN_SAACODE, RoutingMessageEvaluator::FEEDBACKFTP_APPROVED );
 	}
 	*/
 	//reject from qPI
-	if ( correlToken == RoutingMessageEvaluator::AGGREGATIONTOKEN_WMQID )
+	if ( correlToken == RoutingMessageEvaluator::AGGREGATIONTOKEN_MQID )
 	{
 		//not realy good feedback information; to overwrite feedback
 		m_AggregationCode.setCorrelToken( getOverrideFeedbackId() );
@@ -250,7 +177,7 @@ bool SepaStsPayload::isAck()
 			getSequenceResponse();
 		else
 		{
-			string status = getCustomXPath( m_FieldPaths[SepaStsPayload::STATUS] );
+			string status = getCustomXPath( m_StatusXpath );
 			if( status == "ACSC" )
 				m_AckType = 1;
 			else
@@ -272,7 +199,7 @@ bool SepaStsPayload::isNack()
 			getSequenceResponse();
 		else
 		{
-			string status = getCustomXPath( m_FieldPaths[SepaStsPayload::STATUS] );
+			string status = getCustomXPath( m_StatusXpath );
 			if ( status == "RJCT" )
 				m_NackType = 1;
 			else
@@ -288,7 +215,7 @@ bool SepaStsPayload::isBatch()
 	if ( m_BatchType != 2 )
 		return ( m_BatchType == 1 );
 
-	string grpStatus = getCustomXPath( m_FieldPaths[SepaStsPayload::STATUS] );
+	string grpStatus = getCustomXPath( m_StatusXpath );
 	if( ( grpStatus == "PART" ) || ( grpStatus == "ACCP" ) )
 		m_BatchType = 1;
 	else
@@ -306,17 +233,16 @@ string SepaStsPayload::getOverrideFeedback()
 	}
 
 	if( isAck() )
-		return RoutingMessageEvaluator::FEEDBACKQPI_ACK;
+		return RoutingMessageEvaluator::FEEDBACKFTP_ACK;
 
-	string status = getCustomXPath( m_FieldPaths[SepaStsPayload::STATUS] );
+	string status = getCustomXPath( m_StatusXpath );
 	if( status == "ACCP" )
-		return RoutingMessageEvaluator::FEEDBACKQPI_APPROVED;
+		return RoutingMessageEvaluator::FEEDBACKFTP_APPROVED;
 	return status;
 }
 
 RoutingMessageEvaluator::FeedbackProvider SepaStsPayload::getOverrideFeedbackProvider()
 {
-	 //( getCustomXPath( m_FieldPaths[SepaStsPayload::STATUS] ) == "ACCP" )
 	if( isBatch() )
 		return RoutingMessageEvaluator::FEEDBACKPROVIDER_TFD;
 	return RoutingMessageEvaluator::FEEDBACKPROVIDER_UNK;
@@ -324,7 +250,7 @@ RoutingMessageEvaluator::FeedbackProvider SepaStsPayload::getOverrideFeedbackPro
 
 string SepaStsPayload::getOverrideFeedbackId()
 {
-	if( ( isBatch() && isNack() ) || ( getCustomXPath( m_FieldPaths[SepaStsPayload::STATUS] ) == "ACCP" ) )
+	if( ( isBatch() && isNack() ) || ( getCustomXPath( m_StatusXpath ) == "ACCP" ) )
 		return getField( InternalXmlPayload::RELATEDREF );
 	if( isNack() || isAck() )
 		return getField( InternalXmlPayload::ORGTXID );
@@ -342,7 +268,7 @@ wsrm::SequenceResponse* SepaStsPayload::getSequenceResponse()
 	if ( m_AckType == 0 && m_NackType == 0 )
 		return NULL;
 
-	string stsType = getCustomXPath( m_FieldPaths[SepaStsPayload::STATUS] );
+	string stsType = getCustomXPath( m_StatusXpath );
 	string batchId = getField( InternalXmlPayload::RELATEDREF );
 	string batchIssuer = getField( InternalXmlPayload::SENDER );
 	string prevStatus = "";
@@ -473,11 +399,11 @@ RoutingAggregationCode SepaStsPayload::getBusinessAggregationCode()
 		Currency amountParsed( amount );
 		if ( amountParsed.isZero() )
 		{
-			businessReply.addAggregationField( RoutingMessageEvaluator::AGGREGATIONTOKEN_TFDCODE, RoutingMessageEvaluator::FEEDBACKQPI_REFUSE );
+			businessReply.addAggregationField( RoutingMessageEvaluator::AGGREGATIONTOKEN_TFDCODE, RoutingMessageEvaluator::FEEDBACKFTP_REFUSE );
 		}
 		else
 		{
-			businessReply.addAggregationField( RoutingMessageEvaluator::AGGREGATIONTOKEN_SWIFTCODE,	RoutingMessageEvaluator::FEEDBACKQPI_REFUSE );
+			businessReply.addAggregationField( RoutingMessageEvaluator::AGGREGATIONTOKEN_SWIFTCODE,	RoutingMessageEvaluator::FEEDBACKFTP_REFUSE );
 		}
 	}
 	*/
@@ -489,4 +415,9 @@ string SepaStsPayload::getIssuer()
 {
 	//issuer of the original messages
 	return getField( InternalXmlPayload::RECEIVER);
+}
+
+string SepaStsPayload::getMessageType()
+{
+	return m_MessageType;
 }

@@ -25,8 +25,6 @@
 
 #include "RoutingMessageEvaluator.h"
 
-#define SEPABLKRJCTPAYLOAD_PATHCOUNT 2
-
 class SepaStsPayload : public RoutingMessageEvaluator
 {
 	public :
@@ -35,24 +33,21 @@ class SepaStsPayload : public RoutingMessageEvaluator
 		~SepaStsPayload();
 		
 	private:
-		
-		enum Fields
-		{
-			STATUS = 0
-		};
 
-		static const string m_FieldPaths[ SEPABLKRJCTPAYLOAD_PATHCOUNT ];
+		static const string m_StatusXpath;
 		
 		wsrm::SequenceResponse* m_SequenceResponse;
 		unsigned int m_AckType; // tristate value ( 0-notack, 1-ack, 2, not evaluated )
 		unsigned int m_NackType; // tristate value ( 0-notnack, 1-nack, 2, not evaluated )
 		unsigned int m_BatchType; // tristate value ( 0-notbatch, 1-batch, 2, not evaluated )
+
+		string m_MessageType;
+
+		string getMessageType();
 		
 	protected :
 	
 		string internalToString();
-		//string internalGetFieldName( const int field ) { return InternalXmlPayload::getFieldName ( field ); }
-		//string internalGetField( const int field );	
 		
 	public:
 	

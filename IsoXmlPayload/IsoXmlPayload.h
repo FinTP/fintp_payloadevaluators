@@ -35,14 +35,13 @@ class IsoXmlPayload : public RoutingMessageEvaluator
 		
 	private:
 		
-		//static const string m_FieldPaths[ ISOXMLPAYLOAD_PATHCOUNT ];
 		wsrm::SequenceResponse* m_SequenceResponse;
+
+		string getMessageType();
 
 	protected :
 	
 		string internalToString();
-		//string internalGetFieldName( const int field ) { return InternalXmlPayload::getFieldName ( field ); }
-		//string internalGetField( const int field );	
 		
 	public:
 	

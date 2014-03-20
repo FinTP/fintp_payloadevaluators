@@ -26,7 +26,7 @@ public:
 	SepaStsPlugin( const std::string& name, const std::string& version ): Plugin( name, version ) {}
 	bool hasNamespace( const string& aNamespace )
 	{
-		return ( aNamespace == "urn:iso:std:iso:20022:tech:xsd:pacs.002.001.03" )?true:false;
+		return ( aNamespace == "urn:iso:std:iso:20022:tech:xsd:pacs.002.001.03" );
 	}
 	RoutingMessageEvaluator* newInstance( const XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument* document )
 	{
