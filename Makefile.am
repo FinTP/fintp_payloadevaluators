@@ -1,7 +1,8 @@
 ACLOCAL_AMFLAGS = -I ../fintp_utils/m4
 
 lib_LTLIBRARIES = libIsoXmlPayload.la	\
-libSepaStsPayload.la
+libSepaStsPayload.la	\
+libSwiftXmlPayload.la
 
 AM_CPPFLAGS = -DUNIX -DDEBUG_ENABLED -DXALAN_1_9     \
 @CPPFLAGS@      \
@@ -33,5 +34,9 @@ IsoXmlPayload/IsoXmlPayload.h
 libSepaStsPayload_la_SOURCES = SepaStsPayload/SepaStsPayload.cpp	\
 SepaStsPayload/SepaStsPlugin.cpp	\
 SepaStsPayload/SepaStsPayload.h
+
+libSwiftXmlPayload_la_SOURCES = SwiftXmlPayload/SwiftXmlPayload.cpp	\
+SwiftXmlPayload/SwiftXmlPlugin.cpp	\
+SwiftXmlPayload/SwiftXmlPayload.h
 
 SUBDIRS = .
