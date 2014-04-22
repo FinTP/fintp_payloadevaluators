@@ -34,7 +34,7 @@ class SepaStsPayload : public RoutingMessageEvaluator
 		
 	private:
 
-		static const string m_StatusXpath;
+		string m_Status;
 		
 		wsrm::SequenceResponse* m_SequenceResponse;
 		unsigned int m_AckType; // tristate value ( 0-notack, 1-ack, 2, not evaluated )

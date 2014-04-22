@@ -29,8 +29,6 @@ using namespace FinTP;
 
 #include "SepaStsPayload.h"
 
-const string SepaStsPayload::m_StatusXpath = "//x:GrpSts/text()";
-
 SepaStsPayload::SepaStsPayload( const XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument* document ) :
 	m_BatchType( 2 ), m_AckType( 2), m_NackType( 2 ),RoutingMessageEvaluator( document, RoutingMessageEvaluator::SAGSTS )
 {
@@ -44,6 +42,16 @@ SepaStsPayload::SepaStsPayload( const XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument
 
 		m_MessageType = localForm( key->getLocalName() );
 	}
+
+	const XALAN_CPP_NAMESPACE_QUALIFIER NodeRefList itemList = XPathHelper::EvaluateNodes( "//x:GrpSts/text()", m_XalanDocument, m_Namespace );
+	for( size_t index = 0; index < itemList.getLength(); index++ )
+	{
+		const string crtValue = XPathHelper::SerializeToString( itemList.item( index ) );
+		if ( crtValue.length() > 0 )
+			m_Status = crtValue;
+	}
+
+	DEBUG( "Initialized SepaStsPayload evaluator with message type: " << m_MessageType << " and status: " << m_Status );
 }
 
 SepaStsPayload::~SepaStsPayload()
@@ -115,7 +123,7 @@ const RoutingAggregationCode& SepaStsPayload::getAggregationCode( const RoutingA
 			code = getOverrideFeedback();
 
 		m_AggregationCode.addAggregationField( aggField, code );
-		m_AggregationCode.addAggregationCondition( RoutingMessageEvaluator::AGGREGATIONTOKEN_BATCHID, getField( InternalXmlPayload::RELATEDREF ) );
+		m_AggregationCode.addAggregationCondition( RoutingMessageEvaluator::AGGREGATIONTOKEN_BATCHID, getField( InternalXmlPayload::OBATCHID ) );
 		m_AggregationCode.addAggregationCondition( "TFDCODE IS NULL", "" );
 	}
 
@@ -177,8 +185,7 @@ bool SepaStsPayload::isAck()
 			getSequenceResponse();
 		else
 		{
-			string status = getCustomXPath( m_StatusXpath );
-			if( status == "ACSC" )
+			if( m_Status == "ACSC" )
 				m_AckType = 1;
 			else
 				m_AckType = 0;
@@ -199,8 +206,7 @@ bool SepaStsPayload::isNack()
 			getSequenceResponse();
 		else
 		{
-			string status = getCustomXPath( m_StatusXpath );
-			if ( status == "RJCT" )
+			if ( m_Status == "RJCT" )
 				m_NackType = 1;
 			else
 				m_NackType = 0;
@@ -215,8 +221,7 @@ bool SepaStsPayload::isBatch()
 	if ( m_BatchType != 2 )
 		return ( m_BatchType == 1 );
 
-	string grpStatus = getCustomXPath( m_StatusXpath );
-	if( ( grpStatus == "PART" ) || ( grpStatus == "ACCP" ) )
+	if( ( m_Status == "PART" ) || ( m_Status == "ACCP" ) )
 		m_BatchType = 1;
 	else
 		m_BatchType = 0;
@@ -235,10 +240,9 @@ string SepaStsPayload::getOverrideFeedback()
 	if( isAck() )
 		return RoutingMessageEvaluator::FEEDBACKFTP_ACK;
 
-	string status = getCustomXPath( m_StatusXpath );
-	if( status == "ACCP" )
+	if( m_Status == "ACCP" )
 		return RoutingMessageEvaluator::FEEDBACKFTP_APPROVED;
-	return status;
+	return m_Status;
 }
 
 RoutingMessageEvaluator::FeedbackProvider SepaStsPayload::getOverrideFeedbackProvider()
@@ -250,8 +254,8 @@ RoutingMessageEvaluator::FeedbackProvider SepaStsPayload::getOverrideFeedbackPro
 
 string SepaStsPayload::getOverrideFeedbackId()
 {
-	if( ( isBatch() && isNack() ) || ( getCustomXPath( m_StatusXpath ) == "ACCP" ) )
-		return getField( InternalXmlPayload::RELATEDREF );
+	if( ( isBatch() && isNack() ) || ( m_Status == "ACCP" ) )
+		return getField( InternalXmlPayload::OBATCHID );
 	if( isNack() || isAck() )
 		return getField( InternalXmlPayload::ORGTXID );
 	return "";
@@ -268,12 +272,11 @@ wsrm::SequenceResponse* SepaStsPayload::getSequenceResponse()
 	if ( m_AckType == 0 && m_NackType == 0 )
 		return NULL;
 
-	string stsType = getCustomXPath( m_StatusXpath );
-	string batchId = getField( InternalXmlPayload::RELATEDREF );
+	string batchId = getField( InternalXmlPayload::OBATCHID );
 	string batchIssuer = getField( InternalXmlPayload::SENDER );
 	string prevStatus = "";
 
-	if( stsType == "ACCP" )
+	if( m_Status == "ACCP" )
 	{
 		m_SequenceResponse = new wsrm::SequenceAcknowledgement( batchId );
 		m_AckType = 0;
@@ -375,7 +378,7 @@ wsrm::SequenceResponse* SepaStsPayload::getSequenceResponse()
 /*
 bool SepaStsPayload::updateRelatedMessages()
 {
-	string originalBatchId = getField( InternalXmlPayload::RELATEDREF );
+	string originalBatchId = getField( InternalXmlPayload::OBATCHID );
 	if( isBatch() && isAck() )
 		return ( originalBatchId.length() > 0 );
 
@@ -387,7 +390,7 @@ RoutingAggregationCode SepaStsPayload::getBusinessAggregationCode()
 {
 	RoutingAggregationCode businessReply( RoutingMessageEvaluator::AGGREGATIONTOKEN_TRN, getField( InternalXmlPayload::TRN ) );
 	/*
-	string originalBatchId = getField( InternalXmlPayload::RELATEDREF );
+	string originalBatchId = getField( InternalXmlPayload::OBATCHID );
 	if( originalBatchId.length() > 0 )
 	{
 		string messageType = getField( InternalXmlPayload::MESSAGETYPE );
