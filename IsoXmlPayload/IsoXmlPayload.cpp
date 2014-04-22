@@ -25,8 +25,11 @@
 #include "WSRM/SequenceFault.h"
 
 #include "IsoXmlPayload.h"
-#include "RoutingEngine.h"
+#include "XmlUtil.h"
+#include "Trace.h"
 #include "Currency.h"
+
+using namespace FinTP;
 
 IsoXmlPayload::IsoXmlPayload( const XERCES_CPP_NAMESPACE_QUALIFIER DOMDocument* document ) : 
 	RoutingMessageEvaluator( document, RoutingMessageEvaluator::ISOXML )

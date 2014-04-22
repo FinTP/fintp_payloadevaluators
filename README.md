@@ -10,7 +10,6 @@ Requirements
 - **fintp_utils**
 - **fintp_log**
 - **fintp_base**
-- **fintp_routingengine**
 
 Build instructions
 ------------------

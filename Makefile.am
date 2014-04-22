@@ -14,8 +14,7 @@ AM_CPPFLAGS = -DUNIX -DDEBUG_ENABLED -DXALAN_1_9     \
 -I$(FINTP_HOME)/fintp_transport/src     \
 -I$(FINTP_HOME)/fintp_base/src  \
 -I$(FINTP_HOME)/fintp_base/src/DB       \
--I$(FINTP_HOME)/fintp_ws/src    \
--I$(FINTP_HOME)/fintp_routingengine/src
+-I$(FINTP_HOME)/fintp_ws/src
 
 AUTOMAKE_OPTIONS = foreign
 
