@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SepaStsPayload", "SepaStsPa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SwiftXmlPayload", "SwiftXmlPayload\SwiftXmlPayload.vcxproj", "{191CC492-96CF-4A8C-AD65-874DC8920778}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AchBlkAccPayload", "AchBlkAccPayload\AchBlkAccPayload.vcxproj", "{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +27,10 @@ Global
 		{191CC492-96CF-4A8C-AD65-874DC8920778}.Debug|Win32.Build.0 = Debug|Win32
 		{191CC492-96CF-4A8C-AD65-874DC8920778}.Release|Win32.ActiveCfg = Release|Win32
 		{191CC492-96CF-4A8C-AD65-874DC8920778}.Release|Win32.Build.0 = Release|Win32
+		{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}.Debug|Win32.ActiveCfg = Debug|Win32
+		{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}.Debug|Win32.Build.0 = Debug|Win32
+		{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}.Release|Win32.ActiveCfg = Release|Win32
+		{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
