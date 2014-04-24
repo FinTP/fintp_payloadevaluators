@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SwiftXmlPayload", "SwiftXml
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AchBlkAccPayload", "AchBlkAccPayload\AchBlkAccPayload.vcxproj", "{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AchBlkRjctPayload", "AchBlkRjctPayload\AchBlkRjctPayload.vcxproj", "{2DED276B-6225-4BCF-8A25-F866ACC4F012}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}.Debug|Win32.Build.0 = Debug|Win32
 		{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}.Release|Win32.ActiveCfg = Release|Win32
 		{95375A6D-98E1-4E8B-9F31-AEEAAE6A0868}.Release|Win32.Build.0 = Release|Win32
+		{2DED276B-6225-4BCF-8A25-F866ACC4F012}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2DED276B-6225-4BCF-8A25-F866ACC4F012}.Debug|Win32.Build.0 = Debug|Win32
+		{2DED276B-6225-4BCF-8A25-F866ACC4F012}.Release|Win32.ActiveCfg = Release|Win32
+		{2DED276B-6225-4BCF-8A25-F866ACC4F012}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

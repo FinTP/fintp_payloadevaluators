@@ -1,6 +1,7 @@
 ACLOCAL_AMFLAGS = -I ../fintp_utils/m4
 
 lib_LTLIBRARIES = libAchBlkAccPayload.la	\
+libAchBlkRjctPayload.la	\
 libIsoXmlPayload.la	\
 libSepaStsPayload.la	\
 libSwiftXmlPayload.la
@@ -31,6 +32,10 @@ XALAN_LDFLAGS@ -lxerces-c -lxalan-c   \
 libAchBlkAccPayload_la_SOURCES = AchBlkAccPayload/AchBlkAccPayload.cpp	\
 AchBlkAccPayload/AchBlkAccPlugin.cpp	\
 AchBlkAccPayload/AchBlkAccPayload.h
+
+libAchBlkRjctPayload_la_SOURCES = AchBlkRjctPayload/AchBlkRjctPayload.cpp	\
+AchBlkRjctPayload/AchBlkRjctPlugin.cpp	\
+AchBlkRjctPayload/AchBlkRjctPayload.h
 
 libIsoXmlPayload_la_SOURCES = IsoXmlPayload/IsoXmlPayload.cpp	\
 IsoXmlPayload/IsoXmlPlugin.cpp	\
