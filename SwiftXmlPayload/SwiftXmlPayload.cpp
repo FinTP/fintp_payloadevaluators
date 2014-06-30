@@ -49,9 +49,6 @@ SwiftXmlPayload::SwiftXmlPayload( const XERCES_CPP_NAMESPACE_QUALIFIER DOMDocume
 	m_MessageType = XPathHelper::SerializeToString(\
 		XPathHelper::Evaluate( "//sg:ApplicationHeader/@MessageType", m_XalanDocument ) );
 
-	if ( ( m_MessageType == "RPN" ) || ( m_MessageType == "RCQ" ) || ( m_MessageType == "RBE" ) )
-		m_OriginalBatchId = getField( InternalXmlPayload::RELATEDREF );
-
 	m_IOIdentifier = XPathHelper::SerializeToString( XPathHelper::Evaluate(\
 		"//sg:ApplicationHeader//@IOIdentifier", m_XalanDocument ) );
 
@@ -405,19 +402,22 @@ bool SwiftXmlPayload::updateRelatedMessages()
 	if ( m_IOIdentifier != "O" )
 		return false;
 
-	return ( m_OriginalBatchId.length() > 0 );
+	return getOriginalBatchId().length() > 0;
 }
 
 RoutingAggregationCode SwiftXmlPayload::getBusinessAggregationCode()
 {
 	RoutingAggregationCode businessReply( RoutingMessageEvaluator::AGGREGATIONTOKEN_TRN, getField( InternalXmlPayload::TRN ) );
-	if( m_OriginalBatchId.length() > 0 )
+
+	string originalBatchId = getOriginalBatchId();
+
+	if( originalBatchId.length() > 0 )
 	{
 		string messageType = getField( InternalXmlPayload::MESSAGETYPE );
 		string currency = getField( InternalXmlPayload::CURRENCY );
-		string amount = EvaluateKeywordValue( messageType, currency, "Currency", "ammount" );
+		string amount = getField( InternalXmlPayload::AMOUNT );
 
-		businessReply.addAggregationCondition( RoutingMessageEvaluator::AGGREGATIONTOKEN_BATCHID, m_OriginalBatchId );
+		businessReply.addAggregationCondition( RoutingMessageEvaluator::AGGREGATIONTOKEN_BATCHID, originalBatchId );
 
 		Currency amountParsed( amount );
 		if ( amountParsed.isZero() )
@@ -458,4 +458,13 @@ bool SwiftXmlPayload::delayReply()
 string SwiftXmlPayload::getMessageType()
 {
 	return m_MessageType;
+}
+
+string SwiftXmlPayload::getOriginalBatchId()
+{
+	string originalBatchId;
+	if ( m_MessageType == "RPN" || m_MessageType == "RCQ" || m_MessageType == "RBE" )
+		originalBatchId = getField( InternalXmlPayload::OBATCHID );
+
+	return originalBatchId;
 }

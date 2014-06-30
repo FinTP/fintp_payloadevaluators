@@ -37,10 +37,10 @@ class SwiftXmlPayload : public RoutingMessageEvaluator
 		wsrm::SequenceResponse* m_SequenceResponse;
 
 		string m_MessageType;
-		string m_OriginalBatchId;
 		string m_IOIdentifier;
 
 		string getMessageType();
+		string getOriginalBatchId();
 
 	protected :
 
